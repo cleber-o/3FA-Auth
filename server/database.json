@@ -1,30 +1,23 @@
-
-
 {
   "users": [
     {
-      "username": "nome1",
-      "phone": "999223344",
-      "country": "NL",
-      "salt": "ac1e37bfb15599e5f4",
-      "hashedPassword": "e95a3a1e470c10f2a96481b83d8859a07c20e2fbcf4b457b9cf3e7299b08e754",
-      "secret": "JBSWY3DPEHPK3PXP"
+      "username": "2",
+      "password": "7d563172744c366f4c65edc29e12471656ff9ae52c752451dbd8c2877103822ac181ea5d19491bc0e565bbfaa0a2895fa40d5591055c779023f9498bc41628d4",
+      "location": "??",
+      "phone": "2",
+      "passwordSalt": "CPGAoj+P9keP5qPMYHDncQ==",
+      "totpSalt": "UqBCsqBeMu2BfbHM/ah63Q==",
+      "secret": "JFXXPSBVMCQ2HJ4BSFELURDWTTYYINZN"
     },
     {
-      "username": "nome2",
-      "phone": "999887766",
-      "country": "BR",
-      "salt": "20814804c1767293b",
-      "hashedPassword": "2c25a90fae5bfb560a676c7b1c88b2b7fd49a2bb0f9dfb8cfb8bcbef1a7a942a",
-      "secret": "KRSXG5DSNRXXE3DE"
-    },
-    {
-      "username": "nome3",
-      "phone": "999887755",
-      "country": "US",
-      "salt": "20814804c1767293b",
-      "hashedPassword": "2c25a90fae5bfb560a676c7b1c88b2b7fd49a2bb0f9dfb8cfb8bcbef1a7a942a",
-      "secret": "GAXG24TPORSXEZLT"
+      "username": "3",
+      "password": "e74c41d7850934ee6d1bbba5c095cc12b392124cbce8caf45e66242e2a616f97391beac4a00c63a1afba53d11bacd3612da8664b75d80d50c935b0cb8c06bedc",
+      "location": "??",
+      "phone": "12345678",
+      "passwordSalt": "keWUqkehrMjXf2SA9uYuiA==",
+      "totpSalt": "M5xL6zzxYUXqNNARc87FDQ==",
+      "secret": "QV3G573LHVQ4TFK4EF6RGP6JO3AYDXV7",
+      "symmetricKey": "52376e0f77ec6fda449e5af51ff55061083be2f4a7f75e7baf5ab05da6a66123"
     }
   ]
 }

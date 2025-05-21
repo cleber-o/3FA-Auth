@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+
+    <title>Login</title>
+  </head>
+  <body>
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label for="username">Usuário:</label>
+      <input type="text" id="username" required /><br /><br />
+
+      <label for="password">Senha:</label>
+      <input type="password" id="password" required /><br /><br />
+
+      <label for="totp">Código TOTP:</label>
+      <input type="text" id="totp" required /><br /><br />
+
+      <button type="submit">Entrar</button>
+    </form>
+    <p><a href="cadastro.html">Criar novo usuário</a></p>
+
+    <p id="status"></p>
+
+    <script src="main.js"></script>
+  </body>
+</html>

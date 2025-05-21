@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Criar Usuário</title>
+  </head>
+  <body>
+    <h2>Cadastro de Novo Usuário</h2>
+    <form id="registerForm">
+      <label for="username">Usuário:</label>
+      <input type="text" id="username" required /><br /><br />
+
+      <label for="password">Senha:</label>
+      <input type="password" id="password" required /><br /><br />
+
+      <label for="phone">Telefone:</label>
+      <input type="text" id="phone" required /><br /><br />
+
+      <button type="submit">Cadastrar</button>
+    </form>
+    <p><a href="login.html">Ir para tela de login</a></p>
+    <p id="status"></p>
+    <div id="qrcode" style="margin-top: 20px"></div>
+
+    <!-- PRIMEIRO a lib do QR code -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <!-- DEPOIS o seu script -->
+    <script src="main.js"></script>
+  </body>
+</html>
