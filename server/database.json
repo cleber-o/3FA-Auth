@@ -1,0 +1,30 @@
+
+
+{
+  "users": [
+    {
+      "username": "nome1",
+      "phone": "999223344",
+      "country": "NL",
+      "salt": "ac1e37bfb15599e5f4",
+      "hashedPassword": "e95a3a1e470c10f2a96481b83d8859a07c20e2fbcf4b457b9cf3e7299b08e754",
+      "secret": "JBSWY3DPEHPK3PXP"
+    },
+    {
+      "username": "nome2",
+      "phone": "999887766",
+      "country": "BR",
+      "salt": "20814804c1767293b",
+      "hashedPassword": "2c25a90fae5bfb560a676c7b1c88b2b7fd49a2bb0f9dfb8cfb8bcbef1a7a942a",
+      "secret": "KRSXG5DSNRXXE3DE"
+    },
+    {
+      "username": "nome3",
+      "phone": "999887755",
+      "country": "US",
+      "salt": "20814804c1767293b",
+      "hashedPassword": "2c25a90fae5bfb560a676c7b1c88b2b7fd49a2bb0f9dfb8cfb8bcbef1a7a942a",
+      "secret": "GAXG24TPORSXEZLT"
+    }
+  ]
+}
