@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // Cadastro de usuário
   if (path.includes("cadastro.html")) {
     const form = document.getElementById("registerForm");
     form.addEventListener("submit", async (e) => {
@@ -37,11 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const result = await res.json();
         document.getElementById("status").innerText = result.message;
 
-        if (
-          result.qrUri &&
-          typeof result.qrUri === "string" &&
-          result.qrUri.startsWith("otpauth://")
-        ) {
+        if (result.qrUri) {
           const qrContainer = document.getElementById("qrcode");
 
           // Limpa espaços e caracteres ocultos
@@ -75,6 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Login de usuário
   if (path.includes("login.html")) {
     const form = document.getElementById("loginForm");
     form.addEventListener("submit", async (e) => {
@@ -85,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const totp = document.getElementById("totp").value;
       const ip = await getPublicIP();
 
-      const payload = { username, password, totp, ip };
+      const user = { username, password, totp, ip };
 
       try {
         const res = await fetch("http://localhost:3000/auth", {
@@ -93,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(user),
         });
 
         const result = await res.json();
@@ -122,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const key = await window.crypto.subtle.deriveKey(
             {
               name: "PBKDF2",
-              salt: Uint8Array.from(atob(totpSalt), c => c.charCodeAt(0)),
+              salt: Uint8Array.from(atob(totpSalt), (c) => c.charCodeAt(0)),
               iterations: 100000,
               hash: "SHA-256",
             },
@@ -134,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           const exportedKey = await window.crypto.subtle.exportKey("raw", key);
           const keyHex = Array.from(new Uint8Array(exportedKey))
-            .map(b => b.toString(16).padStart(2, "0"))
+            .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
 
           localStorage.setItem("loggedInUser", username);
@@ -149,6 +147,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Tela de mensagens
   if (path.includes("mensagem.html")) {
     const loggedUser = localStorage.getItem("loggedInUser");
 
@@ -171,7 +170,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      const keyBytes = new Uint8Array(
+        keyHex.match(/.{1,2}/g).map((b) => parseInt(b, 16))
+      );
       const key = await window.crypto.subtle.importKey(
         "raw",
         keyBytes,
@@ -193,13 +194,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const authTagBytes = encryptedBytes.slice(-16);
 
       const encryptedHex = Array.from(ciphertextBytes)
-        .map(b => b.toString(16).padStart(2, "0"))
+        .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
       const authTag = Array.from(authTagBytes)
-        .map(b => b.toString(16).padStart(2, "0"))
+        .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
       const ivHex = Array.from(iv)
-        .map(b => b.toString(16).padStart(2, "0"))
+        .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
       const payload = {

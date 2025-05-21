@@ -12,24 +12,24 @@ app.use(cors());
 app.use(express.json());
 
 const DB_PATH = "./server/database.json";
-const IPINFO_TOKEN = process.env.IPINFO_TOKEN;
 
-// Função utilitária para carregar e salvar JSON
+// Carregar e salvar JSON
 function loadDB() {
   return JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
 }
-
 function saveDB(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 }
 
+// Gerar hash da senha
 function scryptHash(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString("hex");
 }
 
+// Descobre a localização do usuário com base no IP
 async function getUserLocation(ip) {
   try {
-    const res = await fetch(`https://ipinfo.io/${ip}?token=${IPINFO_TOKEN}`);
+    const res = await fetch(`https://ipinfo.io/${ip}?token=86de7225565d9a`);
     const data = await res.json();
     return data.country || "??";
   } catch (err) {
@@ -38,7 +38,7 @@ async function getUserLocation(ip) {
   }
 }
 
-// registra um novo usuário
+// Cadastro de usuário
 app.post("/register", async (req, res) => {
   const { username, password, phone, ip } = req.body;
   const db = loadDB();
@@ -48,13 +48,16 @@ app.post("/register", async (req, res) => {
   }
 
   const location = await getUserLocation(ip);
-  const passwordSalt = crypto.randomBytes(16);
-  const totpSalt = crypto.randomBytes(16); // se quiser usar na derivação
+  const passwordSalt = crypto.randomBytes(16); // Gera um salt aleatório para a senha
+  const totpSalt = crypto.randomBytes(16); // Gera um salt aleatório para o TOTP
 
-  const hashedPassword = scryptHash(password, passwordSalt);
+  const hashedPassword = scryptHash(password, passwordSalt); // Hash da senha
 
   const otpSecret = new OTPAuth.Secret(); // generates random secret
-  const secretBase32 = otpSecret.base32;
+
+  const secretBase32 = otpSecret.base32; 
+
+  // Gera o URI do TOTP
   const totp = new OTPAuth.TOTP({
     issuer: "3FA-Auth-App",
     label: username,
@@ -85,7 +88,7 @@ app.post("/register", async (req, res) => {
   });
 });
 
-// Rota de login
+// Login
 app.post("/auth", async (req, res) => {
   const { username, password, totp, ip } = req.body;
 
@@ -123,20 +126,15 @@ app.post("/auth", async (req, res) => {
     secret: secret,
   });
 
-  const currentToken = totpVerifier.generate();
-  console.log("Token esperado agora:", currentToken);
-  console.log("Token recebido:", totp);
-
-  // const isValid = totpVerifier.validate({ token: totp, window: 1 });
+  // Verfica se o token gerado é igual ao token recebido
   const isValid = totpVerifier.validate({ token: totp.toString(), window: 1 });
   if (isValid === null) {
     return res.status(401).json({ message: "Código TOTP inválido." });
   }
-
   res.json({ message: "Login realizado com sucesso." });
 });
 
-// Rota para submissão de mensagens cifradas
+// Mensagem cifrada
 app.post("/message", async (req, res) => {
   const { username, message, iv, authTag } = req.body;
 
@@ -155,26 +153,22 @@ app.post("/message", async (req, res) => {
   const key = Buffer.from(user.symmetricKey, "hex");
 
   try {
-    // const ivBuf = Buffer.from(iv, "hex");
-    // const authTagBuf = Buffer.from(authTag, "hex");
-    // const ciphertextBuf = Buffer.from(message, "hex");
+    const ivBuf = Buffer.from(iv, "hex");
+    const authTagBuf = Buffer.from(authTag, "hex");
+    const ciphertextBuf = Buffer.from(message, "hex");
 
-    // console.log("iv:", ivBuf);
-    // console.log("authTagBuf:", authTagBuf);
-    // console.log("ciphertextBuf:", ciphertextBuf);
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, ivBuf);
+    decipher.setAuthTag(authTagBuf);
 
-    // const decipher = crypto.createDecipheriv("aes-256-gcm", key, ivBuf);
-    // decipher.setAuthTag(authTagBuf);
+    const decrypted = Buffer.concat([
+      decipher.update(ciphertextBuf),
+      decipher.final(),
+    ]);
 
-    // const decrypted = Buffer.concat([
-    //   decipher.update(ciphertextBuf),
-    //   decipher.final(),
-    // ]);
+    console.log("mensagem cifrada:", message);
+    console.log("mensagem clara:", decrypted.toString("utf8"));
 
-    // console.log("mensagem cifrada:");
-    // console.log("mensagem clara:");
-
-    // res.json({ message: "Mensagem recebida e decifrada com sucesso!" });
+    res.json({ message: "Mensagem recebida e decifrada com sucesso!" });
   } catch (err) {
     console.error("Erro ao decifrar a mensagem:", err.message);
     res.status(400).json({ message: "Falha ao decifrar a mensagem." });
@@ -193,25 +187,14 @@ app.post("/get-user-salt", (req, res) => {
   res.json({ totpSalt: user.totpSalt });
 });
 
+// Ligar a porta 3000
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
 
+// Prints no console
 const originalConsoleError = console.error;
-
-const redColor = "\x1b[31m";
-const resetColor = "\x1b[0m";
-
 console.error = function () {
   const args = Array.from(arguments);
-
-  if (typeof args[0] === "string") {
-    args[0] = redColor + args[0];
-  } else {
-    args.unshift(redColor);
-  }
-
-  args.push(resetColor);
-
   return originalConsoleError.apply(console, args);
 };
