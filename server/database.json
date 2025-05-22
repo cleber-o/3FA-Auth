@@ -1,33 +1,15 @@
 {
   "users": [
     {
-      "username": "cleber",
-      "password": "03af3647eab3c5b3c585d25d7f723d42f7481eb06af5c9ac3d865750a2a89b1461d7c026283d433d80835ed27a89c6097df343f463e6a0cf49474c16549a3cdd",
-      "location": "??",
-      "phone": "1234356",
-      "passwordSalt": "z0JkujR9WsQw+DL9tIM08w==",
-      "totpSalt": "4USTZtCigUNLZ0IHVeF6ew==",
-      "secret": "GF5PHYMKLC5MGVGWA3DGO4JWFZI3MAIK",
-      "symmetricKey": "ebb41b211c3e8fc998041472ccc7f659e08459b8735b9550d8f1a6f998b79791"
-    },
-    {
-      "username": "matheus",
-      "password": "6ea11ce12733d6111b6661b4574ee37ae3f88502938f2d0dba2aa52fe7889b51a2d8fe134652ce3703bbf09fc6bd5c98f5561675f2f44080abdc57f90bf1246b",
-      "location": "??",
-      "phone": "169084",
-      "passwordSalt": "jVmuB55daVD945v/9diq2Q==",
-      "totpSalt": "cfuqGusLJujlHHjjNWyfig==",
-      "secret": "4GKQAF4ICMF3JKWNXNBJ6VJSAOL2PW5C"
-    },
-    {
-      "username": "teste",
-      "password": "b868088075471c02c52871e11bd06bb131a35e163c16acc5cfe0e1dff7df1ed6a73e4aff95d18fb9b53449e750cc6af09c5fc00ddb31b58a1d2e37c86cce3cac",
+      "username": "1",
+      "password": "de6a78f69779e9e4ac14898877d4990c069eb193dd0f62bed4b69c658d610b6e63e5d8e0afad612defca130a59678ac0207aab0a0b2ef4c34076f1e0cfc2f0be",
       "location": "BR",
-      "phone": "12345678",
-      "passwordSalt": "/aFlM18RooLt0+QfqDfSnQ==",
-      "totpSalt": "AU4+wKTQDNg/KIWOG0inEw==",
-      "secret": "ISUPNQTETCKSMJOQE6SQEBZZEV76267G",
-      "symmetricKey": "02f9036b3c1240928eb40f4d6a4ec1858adcfc263103faf000f190392587d59f"
+      "phone": "1",
+      "passwordSalt": "2JUPtkcek5ezfkN8vkIzqA==",
+      "totpSalt": "LoeH3P3IxNAZXKN6j4A02g==",
+      "secret": "BXGHOK3JFYHLMZ4O5YUJ4LJ2V2A6PA7O",
+      "messageSalt": "HeTYjmvd20amhLTpkWV0OA==",
+      "sessionTotp": "678075"
     }
   ]
 }

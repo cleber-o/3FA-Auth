@@ -3,7 +3,6 @@ import cors from "cors";
 import fs from "fs";
 import crypto from "crypto";
 import fetch from "node-fetch";
-import { generateSecret, generateKeyUri } from "../utils/totp.js";
 import * as OTPAuth from "otpauth";
 
 const app = express();
@@ -21,9 +20,33 @@ function saveDB(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 }
 
-// Gerar hash da senha
-function scryptHash(password, salt) {
+// Gera salt base64
+function generateSalt() {
+  return crypto.randomBytes(16).toString("base64");
+}
+
+// Gera hash de senha (Scrypt)
+function deriveScryptKey(password, saltBase64) {
+  const salt = Buffer.from(saltBase64, "base64");
   return crypto.scryptSync(password, salt, 64).toString("hex");
+}
+
+// Deriva chave para TOTP/Message com PBKDF2
+function derivePBKDF2Key(input, saltBase64) {
+  const salt = Buffer.from(saltBase64, "base64");
+  // 256 bits de chave AES
+  return crypto.pbkdf2Sync(input, salt, 100000, 32, "sha256");
+}
+
+// Valida TOTP usando otpauth
+function validateTOTP(secret, token) {
+  const totp = new OTPAuth.TOTP({
+    secret: OTPAuth.Secret.fromBase32(secret),
+    digits: 6,
+    period: 30,
+    algorithm: "SHA1",
+  });
+  return totp.validate({ token: token.toString(), window: 1 }) !== null;
 }
 
 // Descobre a localização do usuário com base no IP
@@ -31,19 +54,31 @@ async function getUserLocation(ip) {
   try {
     const res = await fetch(`https://ipinfo.io/${ip}?token=86de7225565d9a`);
     const data = await res.json();
-    return data.country || "??";
+    return data.country || null;
   } catch (err) {
     console.error("Erro ao obter IPInfo:", err);
     return "??";
   }
 }
 
+// Decifra com AES-GCM
+function decipherGcm(encryptedHex, key, ivHex, authTagHex) {
+  const ciphertext = Buffer.from(encryptedHex, "hex");
+  const iv = Buffer.from(ivHex, "hex");
+  const authTag = Buffer.from(authTagHex, "hex");
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([
+    decipher.update(ciphertext),
+    decipher.final(),
+  ]).toString("utf8");
+}
+
 // Cadastro de usuário
 app.post("/register", async (req, res) => {
   const { username, password, phone, ip } = req.body;
   const db = loadDB();
-  const userExists = db.users.some((u) => u.username === username);
-  if (userExists) {
+  if (db.users.some((u) => u.username === username)) {
     return res.status(400).json({ message: "Usuário já existe" });
   }
 
@@ -51,11 +86,12 @@ app.post("/register", async (req, res) => {
   const passwordSalt = crypto.randomBytes(16); // Gera um salt aleatório para a senha
   const totpSalt = crypto.randomBytes(16); // Gera um salt aleatório para o TOTP
 
-  const hashedPassword = scryptHash(password, passwordSalt); // Hash da senha
+  const hashedPassword = deriveScryptKey(password, passwordSalt); // Hash da senha
 
   const otpSecret = new OTPAuth.Secret(); // generates random secret
 
-  const secretBase32 = otpSecret.base32; 
+  const secretBase32 = otpSecret.base32;
+  const messageSalt = generateSalt();
 
   // Gera o URI do TOTP
   const totp = new OTPAuth.TOTP({
@@ -77,6 +113,7 @@ app.post("/register", async (req, res) => {
     passwordSalt: passwordSalt.toString("base64"),
     totpSalt: totpSalt.toString("base64"),
     secret: secretBase32,
+    messageSalt,
   };
 
   db.users.push(newUser);
@@ -88,106 +125,77 @@ app.post("/register", async (req, res) => {
   });
 });
 
-// Login
+// Autenticação
 app.post("/auth", async (req, res) => {
-  const { username, password, totp, ip } = req.body;
+  const {
+    username,
+    password,
+    totp,
+    location: locationFromClient,
+    ip,
+  } = req.body;
 
   const db = loadDB();
   const user = db.users.find((u) => u.username === username);
+
   if (!user) {
-    return res.status(401).json({ message: "Usuário não encontrado." });
+    return res.status(401).json({ message: "Usuário não encontrado!" });
   }
 
-  // Verifica IP (localização)
-  const userLocation = await getUserLocation(ip);
-  if (userLocation !== user.location) {
-    return res
-      .status(403)
-      .json({ message: "IP fora da localização permitida." });
+  // Verifica localização
+  const location = await getUserLocation(ip);
+  if (user.location !== location) {
+    return res.status(401).json({ message: "Localização inválida!" });
   }
 
-  // Verifica senha
-  const saltBuffer = Buffer.from(user.passwordSalt, "base64");
-  const hashedInput = crypto
-    .scryptSync(password, saltBuffer, 64)
-    .toString("hex");
-  if (hashedInput !== user.password) {
-    return res.status(401).json({ message: "Senha incorreta." });
+  // Valida senha
+  const encryptedPassword = deriveScryptKey(password, user.passwordSalt);
+  if (encryptedPassword !== user.password) {
+    return res.status(401).json({ message: "Senha incorreta!" });
   }
 
-  // Verifica TOTP
-  const secret = OTPAuth.Secret.fromBase32(user.secret);
-  const totpVerifier = new OTPAuth.TOTP({
-    issuer: "3FA-Auth-App",
-    label: username,
-    algorithm: "SHA1",
-    digits: 6,
-    period: 30,
-    secret: secret,
+  // Valida TOTP
+  const isTokenValid = validateTOTP(user.secret, totp);
+  if (!isTokenValid) {
+    return res.status(401).json({ message: "Token TOTP inválido!" });
+  }
+
+  // Salva o TOTP da sessão temporariamente (apenas em disco)
+  user.sessionTotp = totp;
+  saveDB(db);
+
+  res.status(200).json({
+    message: "Usuário autenticado com sucesso!",
+    messageSalt: user.messageSalt,
   });
-
-  // Verfica se o token gerado é igual ao token recebido
-  const isValid = totpVerifier.validate({ token: totp.toString(), window: 1 });
-  if (isValid === null) {
-    return res.status(401).json({ message: "Código TOTP inválido." });
-  }
-  res.json({ message: "Login realizado com sucesso." });
 });
 
 // Mensagem cifrada
-app.post("/message", async (req, res) => {
-  const { username, message, iv, authTag } = req.body;
+app.post("/message", (req, res) => {
+  const { username, ciphertext, authTag, iv } = req.body;
 
   const db = loadDB();
   const user = db.users.find((u) => u.username === username);
-  if (!user) {
-    return res.status(401).json({ message: "Usuário não encontrado." });
+
+  if (!user || !user.sessionTotp) {
+    return res.status(401).json({ message: "Faça login novamente!" });
   }
 
-  // Simula o armazenamento da symmetricKey após login, caso não exista
-  if (!user.symmetricKey) {
-    // Gera uma chave simétrica aleatória de 32 bytes (256 bits)
-    user.symmetricKey = crypto.randomBytes(32).toString("hex");
-    saveDB(db);
-  }
-  const key = Buffer.from(user.symmetricKey, "hex");
+  // Deriva a chave de mensagem a partir do TOTP da sessão
+  const key = derivePBKDF2Key(user.sessionTotp, user.messageSalt);
 
   try {
-    const ivBuf = Buffer.from(iv, "hex");
-    const authTagBuf = Buffer.from(authTag, "hex");
-    const ciphertextBuf = Buffer.from(message, "hex");
+    const msgDecifrada = decipherGcm(ciphertext, key, iv, authTag);
 
-    const decipher = crypto.createDecipheriv("aes-256-gcm", key, ivBuf);
-    decipher.setAuthTag(authTagBuf);
+    console.log("Mensagem decifrada:", msgDecifrada);
 
-    const decrypted = Buffer.concat([
-      decipher.update(ciphertextBuf),
-      decipher.final(),
-    ]);
-
-    console.log("mensagem cifrada:", message);
-    console.log("mensagem clara:", decrypted.toString("utf8"));
-
-    res.json({ message: "Mensagem recebida e decifrada com sucesso!" });
+    res.status(200).json({ message: "Mensagem recebida com sucesso!" });
   } catch (err) {
     console.error("Erro ao decifrar a mensagem:", err.message);
     res.status(400).json({ message: "Falha ao decifrar a mensagem." });
   }
 });
 
-app.post("/get-user-salt", (req, res) => {
-  const { username } = req.body;
-  const db = loadDB();
-  const user = db.users.find((u) => u.username === username);
-
-  if (!user) {
-    return res.status(404).json({ message: "Usuário não encontrado." });
-  }
-
-  res.json({ totpSalt: user.totpSalt });
-});
-
-// Ligar a porta 3000
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
