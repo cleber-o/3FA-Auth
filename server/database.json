@@ -10,6 +10,17 @@
       "secret": "QM3V3QCVMIZEFHQBOWQKWJHCUPEXCYHW",
       "messageSalt": "gr/s/EUlcq8encggp/jiCA==",
       "sessionTotp": "186930"
+    },
+    {
+      "username": "laura",
+      "password": "5e1b283ec318eb308b32dc6ffe55e359caa9c8e626a05d85a050988f144d460efc96c6136efa3235c8933829c636389fe32c183adf9a063915ca0c1cd35f59c1",
+      "location": "BR",
+      "phone": "12345678",
+      "passwordSalt": "p5/joIkIZ0Sym+YqSik+4Q==",
+      "totpSalt": "93/gSM+jFmHtPNRrrs+m6w==",
+      "secret": "LSL6SJCRSLYMSWCQUEXMSS6U33QNPV63",
+      "messageSalt": "mk0g6BH3Nxw8SmaL58TQ1Q==",
+      "sessionTotp": "117296"
     }
   ]
 }

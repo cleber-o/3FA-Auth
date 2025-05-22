@@ -186,8 +186,18 @@ app.post("/message", (req, res) => {
 
   try {
     const msgDecifrada = decipherGcm(ciphertext, key, iv, authTag);
-
-    console.log("Mensagem decifrada:", msgDecifrada);
+    console.log();
+    console.log("= = = = = = = = = = = = = = = = = = = ");
+    console.log();
+    console.log("Uma nova mensagem de:", username);
+    console.log("----------------------------");
+    console.log();
+    console.log(" > Mensagem cifrada:", ciphertext);
+    console.log();
+    console.log(" > Mensagem decifrada:", msgDecifrada);
+    console.log();
+    console.log("= = = = = = = = = = = = = = = = = = = ");
+    console.log();
 
     res.status(200).json({ message: "Mensagem recebida com sucesso!" });
   } catch (err) {
