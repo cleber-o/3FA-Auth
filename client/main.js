@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (res.ok && result.messageSalt) {
           localStorage.setItem("loggedInUser", username);
           localStorage.setItem("messageSalt", result.messageSalt);
+          localStorage.setItem("sessionTotp", totp);
           window.location.href = "mensagem.html";
         }
       });
@@ -114,8 +115,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       .addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // 1. Solicite TOTP via prompt
-        const totp = prompt("Digite seu código TOTP atual:");
+        // 1. Pega o TOTP do cache
+        const totp = localStorage.getItem("sessionTotp"); // Agora pega o TOTP do cache!
+        if (!totp) {
+          alert("Sua sessão expirou, faça login novamente.");
+          window.location.href = "login.html";
+          return;
+        }
 
         // 2. Derive chave simétrica PBKDF2 (256 bits)
         const keyMaterial = await window.crypto.subtle.importKey(

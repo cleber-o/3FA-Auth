@@ -1,3 +1,15 @@
 {
-  "users": []
+  "users": [
+    {
+      "username": "cleber",
+      "password": "a2a3abc4bfb0283914c07594a960e8f588bcb8a0d459f49969cae99d9158921f0044aa78a2da4ac94a702a7bcb170795755d09f25dc0541a3fae7e5f01a20df0",
+      "location": "BR",
+      "phone": "12345678",
+      "passwordSalt": "FumCEB5dvySSLVhpW3iDdQ==",
+      "totpSalt": "0oKt8djkI5fQt81ew4k/vA==",
+      "secret": "QM3V3QCVMIZEFHQBOWQKWJHCUPEXCYHW",
+      "messageSalt": "gr/s/EUlcq8encggp/jiCA==",
+      "sessionTotp": "186930"
+    }
+  ]
 }
